@@ -21,9 +21,9 @@ index.html is the login page, users can input credentials and type of login
 input.html allows user input; email, password, login type, and enter
 reset_password.html currently not implemented
 Found in auction_house folder:
-AH_Bidders.html is the main page for bidders, unfinished
-AH_Sellers.html is the main page for sellers, unfinished
-AH_Helpdesk.html is the main page for helpdesk, unfinished
+AH_Bidders.html is the main page for bidders, unfinished;
+AH_Sellers.html is the main page for sellers, unfinished;
+AH_Helpdesk.html is the main page for helpdesk, unfinished.
 
 CSV Files:
 These are the given datasets used to populate the database.
