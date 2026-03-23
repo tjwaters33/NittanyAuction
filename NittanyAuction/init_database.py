@@ -205,7 +205,7 @@ def import_users():
         email = content[0].strip()
         password = hash_password(content[1].strip())
 
-        # sqlite3 instert data into database
+        # sqlite3 insert data into database
         cur.execute("INSERT INTO Users (email, password) VALUES (?, ?)", (email, password))
 
     # ensure commit and close

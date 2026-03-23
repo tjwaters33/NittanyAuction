@@ -7,41 +7,60 @@
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <title></title>
 </head>
+<style>
+	input.is-invalid {
+		border-color: red;
+		outline-color: red;
+	}
+	.card-body {
+		padding: 1.25rem;
+		background: #85baff;
+		top: 30vh;
+		position: absolute;
+		width: 30vw;
+		left: 35vw;
+		border-radius: 1vw;
+
+	}
+	.title{
+		position: absolute;
+		padding: 1vw;
+		color:#0c0c89;
+	}
+</style>
 <body>
+<h1 class="title"><b>NittanyAuction</b></h1>
 <div class="container-sm">
     <div class="card-body">
-        <h2 class="card-title">Enter Your Name</h2>
 
-        <form action="/name" method="POST">
+        <form action="/login" method="POST">
+
+			<div class="form-group">
+				<label for="type">Account Type:</label>
+				<select id="type" name="type" required class="form-control">
+
+					<option value="Bidders">Bidder</option>
+					<option value="Sellers">Seller</option>
+					<option value="Helpdesk">Help Desk</option>
+				</select>
+			</div>
+
             <div class="form-group">
-                <label for="FirstName">First Name</label>
-                <input type="text" name="FirstName" required class="form-control">
+                <label for="email">Email</label>
+                <input type="text" name="email" required class="form-control {% if error %}is-invalid{% endif %}">
             </div>
             <div class="form-group">
-                <label for="LastName">Last Name</label>
-                <input type="text" name="LastName" required class="form-control">
-            </div>
-            <button type="submit" class="btn btn-primary">Insert</button>
-            <a class="btn btn-success" href="/" role="button">Go Back</a>
+                <label for="password">Password</label>
+                <input type="password" name="password" required class="form-control {% if error %}is-invalid{% endif %}" id="password" >
+			</div>
+            <button type="submit" class="btn btn-primary" style="width: 100%">Login</button>
+            <!--<a class="btn btn-success" href="/" role="button">Go Back</a>-->
         </form>
+		<!--<form action="/forget_password" method="POST">
+            <a class="btn btn-success" href="/reset_password" role="button">Forgot Password?</a>
+        </form>-->
     </div>
-    <div class="card-body">
-        <h2 class="card-title">History</h2>
-        <table class="table table-dark">
-            <tr>
-                <th scope="col"> First Name</th>
-                <th scope="col"> Last Name</th>
-            </tr>
-            <tbody>
-            {% for first_name, last_name in result %}
-                <tr>
-                    <td> {{ first_name }} </td>
-                    <td> {{ last_name }} </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    
 </div>
 
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
