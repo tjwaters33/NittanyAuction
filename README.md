@@ -1,6 +1,6 @@
 Nittany Auction Phase 2
 
-This is the github repositry for the implementation of the Nittany Auction Database Project.
+This is the github repository for the implementation of the Nittany Auction Database Project.
 Current Functions: Database Population, User Login
 
 init_database.py: 
@@ -13,7 +13,7 @@ app.py:
 This file handles the backend logic for the database application.
 Handles login functionality and logic in valid_name(), ensuring that entered password is hashed before checked with the database.
 Handles HTML forms and user inputs, navigating the users to the correct pages.
-Establlishes connection between Flask and SQLite3 database.
+Establishes connection between Flask and SQLite3 database.
 
 HTML Files:
 Found in the Templates folder:
