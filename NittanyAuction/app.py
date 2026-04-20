@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 import sqlite3 as sql
 import init_database
 
@@ -21,7 +21,7 @@ def login_endpoint():
 		print(request.form)
 		result = valid_name(request.form['type'], request.form['email'], request.form['password'])
 		if result:
-			return render_template(f'auction_house/AH_{request.form['type']}.html', error=error, result=result)
+			return render_template(f'auction_house/AH_{request.form['type']}.html', error = error, result = result)
 		else:
 			error = 'invalid input name'
 
@@ -39,6 +39,29 @@ def valid_name(type, email, password):
 	return count == 1
 
 
+@app.route('/get_subcategories', methods=['POST'])
+def get_subcategories():
+
+
+	print('GET subcat')
+	key = 'Root'
+
+	if request.method == 'POST':
+		key = request.form.get('super_category', 'Root')
+
+	connection = init_database.get_connection()
+
+	print('k',key)
+	cursor = connection.execute(
+		'SELECT category_name FROM Categories WHERE parent_category = ?',
+		(key,)
+	)
+
+	results = cursor.fetchall()
+
+	print('res',results)
+
+	return jsonify([row[0] for row in results])
 
 if __name__ == "__main__":
 	app.run()

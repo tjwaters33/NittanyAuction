@@ -431,18 +431,15 @@ def import_categories():
 
     # open dataset, read, get data
     f = open("Categories.csv", "r", encoding="utf-8-sig")
+    reader = csv.reader(f, quotechar='"', skipinitialspace=True)
     # skip header
-    next(f)  
-    for row in f:
-        #clean each row
-        row = row.strip()
-        content = row.split(",")
-
+    next(reader)  
+    for row in reader:
         # Not all categories have parent, blank entry handling
         parent = None
-        if content[0].strip() != "":
-            parent = content[0].strip()
-        child = content[1].strip()
+        if row[0].strip() != "":
+            parent = row[0].strip()
+        child = row[1].strip()
 
         rows.append((parent, child))
 

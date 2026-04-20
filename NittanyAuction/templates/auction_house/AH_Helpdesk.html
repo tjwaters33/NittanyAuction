@@ -1,24 +1,190 @@
 
-<style>
-	input.is-invalid {
-		border-color: red;
-		outline-color: red;
-	}
-	.card-body {
-		padding: 1.25rem;
-		background: #85baff;
-		top: 30vh;
-		position: absolute;
-		width: 30vw;
-		left: 35vw;
-		border-radius: 1vw;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>NittanyAuction</title>
+	<style>
+		body { margin: 0; font-family: Arial, sans-serif; }
 
-	}
-	.title{
-		position: absolute;
-		padding: 1vw;
-		color:#0c0c89;
-	}
-</style>
+		nav {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			background-color: #222;
+			padding: 10px 20px;
+		}
+
+		nav h1 {
+			color: white;
+			margin: 0;
+			font-size: 24px;
+		}
+
+		button {
+			background: none;
+			border: 1px solid white;
+			color: white;
+			font-size: 18px;
+			cursor: pointer;
+			padding: 5px 10px;
+			border-radius: 4px;
+		}
+
+		#menu {
+			display: none;
+			background-color: #333;
+			padding: 10px 20px;
+		}
+
+		#menu a {
+			display: block;
+			color: white;
+			text-decoration: none;
+			padding: 8px 0;
+			border-bottom: 1px solid #444;
+		}
+
+		#menu a:hover { color: #f5c842; }
+	</style>
+</head>
 <body>
-<h1 class="title"><b>Auction House for Help Desk</b></h1>
+
+	<nav>
+		<h1>NittanyAuction</h1>
+		<button onclick="toggleMenu()">☰</button>
+	</nav>
+
+	<div id="menu">
+		<a href="#">Home</a>
+		<a href="#">Browse Listings</a>
+		<a href="#">My Bids</a>
+		<a href="#">Sell an Item</a>
+		<a href="#">Account</a>
+	</div>
+	<div id="category-panel">
+		<div id="panel-title">Browse Categories</div>
+		<div id="breadcrumb"></div>
+		<table id="cat-table">
+			<thead><tr><th>Category</th><th></th></tr></thead>
+			<tbody id="cat-body"></tbody>
+		</table>
+		<div id="status" style="display:none;"></div>
+	</div>
+
+	<script>
+		var path = ["root"];
+
+		function getSubcategories(superCategory, callback) {
+			var formData = new FormData();
+			formData.append("super_category", superCategory);
+
+			fetch("/get_subcategories", {
+				method: "POST",
+				body: formData
+			})
+			.then(function(res) { return res.json(); })
+			.then(function(data) {
+				// expecting data to be a list of category name strings
+				// e.g. ["Electronics", "Clothing", "Sports"]
+				callback(null, Array.isArray(data) ? data : []);
+			})
+			.catch(function(err) {
+				callback(err, []);
+			});
+		}
+
+		function renderBreadcrumb() {
+			var bc = document.getElementById("breadcrumb");
+			bc.innerHTML = "";
+			path.forEach(function(p, i) {
+				if (i > 0) {
+					var sep = document.createElement("span");
+					sep.className = "sep";
+					sep.textContent = "›";
+					bc.appendChild(sep);
+				}
+				var label = p === "root" ? "All Categories" : p;
+				if (i === path.length - 1) {
+					var cur = document.createElement("span");
+					cur.className = "current";
+					cur.textContent = label;
+					bc.appendChild(cur);
+				} else {
+					var link = document.createElement("span");
+					link.textContent = label;
+					(function(idx) {
+						link.onclick = function() {
+							path = path.slice(0, idx + 1);
+							render();
+						};
+					})(i);
+					bc.appendChild(link);
+				}
+			});
+		}
+
+		function render() {
+			var current = path[path.length - 1];
+			var tbody = document.getElementById("cat-body");
+			var status = document.getElementById("status");
+			var table = document.getElementById("cat-table");
+
+			renderBreadcrumb();
+			tbody.innerHTML = "";
+			table.style.display = "table";
+			status.style.display = "none";
+			status.textContent = "Loading...";
+			status.style.display = "block";
+			table.style.display = "none";
+
+			getSubcategories(current, function(err, children) {
+				status.style.display = "none";
+
+				if (err) {
+					status.textContent = "Error loading categories.";
+					status.style.display = "block";
+					return;
+				}
+
+				if (children.length === 0) {
+					status.textContent = "No subcategories — this is a leaf category.";
+					status.style.display = "block";
+					return;
+				}
+
+				table.style.display = "table";
+				children.forEach(function(cat) {
+					var tr = document.createElement("tr");
+
+					var tdName = document.createElement("td");
+					tdName.textContent = cat;
+
+					var tdArrow = document.createElement("td");
+					tdArrow.className = "arrow";
+					tdArrow.textContent = "›";
+
+					tr.appendChild(tdName);
+					tr.appendChild(tdArrow);
+
+					tr.onclick = function() {
+						// try drilling in; if no children, just highlight
+						path.push(cat);
+						render();
+					};
+
+					tbody.appendChild(tr);
+				});
+			});
+		}
+
+		function toggleMenu() {
+			var menu = document.getElementById("menu");
+			menu.style.display = menu.style.display === "block" ? "none" : "block";
+		}
+
+		render();
+	</script>
+
+</body>
+</html>
