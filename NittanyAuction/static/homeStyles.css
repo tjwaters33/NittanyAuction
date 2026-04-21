@@ -1,0 +1,16 @@
+.home-divider {
+    display: flex;
+    flex-direction: row;
+}
+
+.main-container{
+    margin: 4px;
+}
+
+.product-list{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 8px;
+    justify-content: center;
+}

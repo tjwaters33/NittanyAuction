@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	{% include 'imports.html' %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='loginStyles.css') }}"></link>
+</head>
+<body>
+<h1 class="title"><b>NittanyAuction</b></h1>
+<div class="container-sm">
+    <div class="card-body">
+    {% block content %}
+    {% endblock %}
+    </div>
+</div>
+</body>
+</html>

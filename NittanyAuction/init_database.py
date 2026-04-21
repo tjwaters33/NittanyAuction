@@ -194,7 +194,7 @@ def import_users():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Users.csv", "r", newline="", encoding="utf-8-sig")
+    f = open("init_data/Users.csv", "r", newline="", encoding="utf-8-sig")
     #Skip heading
     next(f)
     for row in f:
@@ -221,7 +221,7 @@ def import_helpdesk():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Helpdesk.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Helpdesk.csv", "r", encoding="utf-8-sig")
     # skip header
     next(f)  
     for row in f:
@@ -251,7 +251,7 @@ def import_zipcode_info():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Zipcode_Info.csv", "r", newline="", encoding="utf-8-sig")
+    f = open("init_data/Zipcode_Info.csv", "r", newline="", encoding="utf-8-sig")
     # skip header
     next(f)
     for row in f:
@@ -276,7 +276,7 @@ def import_address():
     connect = get_connection()
     cur = connect.cursor()
 
-    f = open("Address.csv", "r", newline="", encoding="utf-8-sig")
+    f = open("init_data/Address.csv", "r", newline="", encoding="utf-8-sig")
     # skip header
     next(f)
     for row in f:
@@ -304,7 +304,7 @@ def import_bidders():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Bidders.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Bidders.csv", "r", encoding="utf-8-sig")
     # skip header
     next(f)  
     for row in f:
@@ -341,7 +341,7 @@ def import_sellers():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Sellers.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Sellers.csv", "r", encoding="utf-8-sig")
     # skip header
     next(f)  
     for row in f:
@@ -369,7 +369,7 @@ def import_local_vendors():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Local_Vendors.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Local_Vendors.csv", "r", encoding="utf-8-sig")
     # business names can have commas :( alternate logic to handle
     i = csv.reader(f)
     # skip header
@@ -396,7 +396,7 @@ def import_credit_cards():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Credit_Cards.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Credit_Cards.csv", "r", encoding="utf-8-sig")
     # skip header
     next(f)  
     for row in f:
@@ -430,7 +430,7 @@ def import_categories():
     rows = []
 
     # open dataset, read, get data
-    f = open("Categories.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Categories.csv", "r", encoding="utf-8-sig")
     reader = csv.reader(f, quotechar='"', skipinitialspace=True)
     # skip header
     next(reader)  
@@ -470,7 +470,7 @@ def import_auction_listings():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Auction_Listings.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Auction_Listings.csv", "r", encoding="utf-8-sig")
     # numbers have comma :( alernate logic
     i = csv.reader(f)
     # skip header
@@ -506,7 +506,7 @@ def import_bids():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Bids.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Bids.csv", "r", encoding="utf-8-sig")
     # skip header
     next(f)  
     for row in f:
@@ -535,7 +535,7 @@ def import_transactions():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Transactions.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Transactions.csv", "r", encoding="utf-8-sig")
     # skip header
     next(f)  
     for row in f:
@@ -565,7 +565,7 @@ def import_ratings():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Ratings.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Ratings.csv", "r", encoding="utf-8-sig")
     # skip header
     next(f)
     for row in f:
@@ -594,7 +594,7 @@ def import_requests():
     cur = connect.cursor()
 
     # open dataset, read, get data
-    f = open("Requests.csv", "r", encoding="utf-8-sig")
+    f = open("init_data/Requests.csv", "r", encoding="utf-8-sig")
     # skip header
     next(f)
 

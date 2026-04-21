@@ -1,0 +1,21 @@
+input.is-invalid {
+    border-color: red;
+    outline-color: red;
+}
+
+.card-body {
+    padding: 1.25rem;
+    background: #85baff;
+    top: 30vh;
+    position: absolute;
+    width: 30vw;
+    left: 35vw;
+    border-radius: 1vw;
+
+}
+
+.title{
+    position: absolute;
+    padding: 1vw;
+    color:#0c0c89;
+}

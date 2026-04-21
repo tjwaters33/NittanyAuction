@@ -1,0 +1,42 @@
+{% extends "page.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='homeStyles.css') }}"></link>
+<script src="{{ url_for('static', filename='productCard.js') }}"></script>
+<div class="input-group input-group-sm m-1 w-50">
+  <input type="text" class="form-control" id="searchString">
+  <div class="input-group-append">
+    <button class="btn btn-outline-primary" type="button" onclick="render()">Search</button>
+  </div>
+</div>
+<div id="product-list" class="product-list">
+
+</div>
+	<script>
+
+		async function searchListings(searchString){
+			const formData = new FormData();
+			formData.append("searchString", searchString);
+
+			const response = await fetch("{{ url_for('search_listings') }}", {
+				method: "POST",
+				body: formData
+			});
+
+			return await response.json();	
+		}
+
+		async function render() {
+			const searchStr = document.getElementById("searchString").value;
+			if(searchStr=="") return
+
+			const productlist = document.getElementById("product-list")
+
+			productlist.innerHTML = ""
+
+			let products = await searchListings(searchStr);
+			products.forEach(prod=>productlist.appendChild(makeProductCard(prod)))
+		}
+
+	</script>
+{% endblock %}

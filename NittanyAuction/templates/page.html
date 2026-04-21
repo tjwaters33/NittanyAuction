@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>NittanyAuction</title>
+	{% include 'imports.html' %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand">NittanyAuction [{{ type }}]</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" onclick="window.location=`{{url_for('home')}}`+window.location.search;">Home</a>
+                </li>
+                <li class="nav-item">
+                <a class="nav-link" onclick="window.location=`{{url_for('search_listings')}}`+window.location.search;">Search</a>
+                </li>
+                {% if type == "Sellers" %}
+                <li class="nav-item">
+                    <a class="nav-link"  onclick="window.location=`/sellitem`+window.location.search;">Sell an Item</a>
+                </li>
+
+                {% elif type == "Bidders" %}
+                <li class="nav-item">
+                    <a class="nav-link"  onclick="window.location=`/bids`+window.location.search;">My bids</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"  onclick="window.location=`/cart`+window.location.search;">Shopping Cart</a>
+                </li>
+
+                {% elif type == "Helpdesk" %}
+                <li class="nav-item">
+                    <a class="nav-link"  onclick="window.location=`/tickets`+window.location.search;">Tickets</a>
+                </li>
+
+                {% else %}
+
+                {% endif %}
+                <li class="nav-item">
+                <a class="nav-link" onclick="window.location=`/account`+window.location.search;">Account</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    {% block content %}
+    {% endblock %}
+</body>
+</html>

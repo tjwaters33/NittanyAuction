@@ -1,0 +1,109 @@
+{% extends "page.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='homeStyles.css') }}"></link>
+<script src="{{ url_for('static', filename='productCard.js') }}"></script>
+<div class="main-container">
+	<div id="breadcrumb"></div>
+	<div class="home-divider">
+		<div id="category-panel" class="category-panel">
+			<ul id="cat-body" class="list-group">
+
+			</ul>
+		</div>
+		<div id="product-list" class="product-list">
+
+		</div>
+	</div>
+</div>
+	<script>
+		let path = ["Root"];
+
+		async function getSubcategories(category) {
+			const formData = new FormData();
+			formData.append("super_category", category);
+
+			const response = await fetch("{{ url_for('get_subcategories') }}", {
+				method: "POST",
+				body: formData
+			});
+
+			return await response.json();
+		}
+
+		async function getListings(category){
+			const formData = new FormData();
+			formData.append("category", category);
+
+			const response = await fetch("{{ url_for('get_listings') }}", {
+				method: "POST",
+				body: formData
+			});
+
+			return await response.json();	
+		}
+
+		function renderBreadcrumb() {
+			const bc = document.getElementById("breadcrumb");
+			bc.innerHTML = "";
+
+			path.forEach(function(crumb, index) {
+				const link = document.createElement("span");
+				link.textContent = crumb;
+				link.style.cursor = "pointer";
+				link.style.color = "#0066cc";
+				link.style.textDecoration = "underline";
+
+				link.onclick = function() {
+					path = path.slice(0, index + 1);
+					render();
+				};
+
+				bc.appendChild(link);
+
+				if (index < path.length - 1) {
+					const separator = document.createElement("span");
+					separator.textContent = " > ";
+					separator.style.cursor = "default";
+					separator.style.color = "black";
+					separator.style.textDecoration = "none";
+					bc.appendChild(separator);
+				}
+			});
+		}
+
+		async function render() {
+			const catbody = document.getElementById("cat-body");
+			const productlist = document.getElementById("product-list")
+
+			catbody.innerHTML = "";
+			productlist.innerHTML = ""
+
+			renderBreadcrumb();
+
+			const current = path[path.length - 1];
+			const categories = await getSubcategories(current);
+			if(categories.length!=0){
+				categories.forEach(function(cat) {
+					const row = document.createElement("li");
+					row.className = "list-group-item"
+
+					row.textContent = cat
+
+					row.onclick = function() {
+						path.push(cat);
+						render();
+					};
+
+					catbody.appendChild(row);
+				});
+			}else{
+				let products = await getListings(current);
+				products.forEach(prod=>productlist.appendChild(makeProductCard(prod)))
+			}
+		}
+
+		window.onload = render;
+
+	</script>
+{% endblock %}

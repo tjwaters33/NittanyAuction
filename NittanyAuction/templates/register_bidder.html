@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+        <form action="/register_bidder" method="POST">
+
+            {% if error %}<div class="alert alert-danger mt-3">{{ error }}</div>{% endif %}
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="text" name="email" required class="form-control {% if error %}is-invalid{% endif %}">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" required class="form-control {% if error %}is-invalid{% endif %}" id="password" >
+			</div>
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" name="first_name" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" name="last_name" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" name="age" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="zipcode">Zipcode</label>
+                <input type="number" name="zipcode" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="city">City</label>
+                <input type="text" name="city" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="state">State</label>
+                <input type="text" name="state" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="street_num">Street Number</label>
+                <input type="number" name="street_num" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="street_name">Street Name</label>
+                <input type="text" name="street_name" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="major">Major (None if not applicable)</label>
+                <input type="text" name="major" required class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%">Register</button>
+            <!--<a class="btn btn-success" href="/" role="button">Go Back</a>-->
+        </form>
+		<!--<form action="/forget_password" method="POST">
+            <a class="btn btn-success" href="/reset_password" role="button">Forgot Password?</a>
+        </form>-->
+        
+{% endblock %}
