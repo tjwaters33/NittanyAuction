@@ -83,24 +83,21 @@
 
 			const current = path[path.length - 1];
 			const categories = await getSubcategories(current);
-			if(categories.length!=0){
-				categories.forEach(function(cat) {
-					const row = document.createElement("li");
-					row.className = "list-group-item"
+			categories.forEach(function(cat) {
+				const row = document.createElement("li");
+				row.className = "list-group-item"
 
-					row.textContent = cat
+				row.textContent = cat
 
-					row.onclick = function() {
-						path.push(cat);
-						render();
-					};
+				row.onclick = function() {
+					path.push(cat);
+					render();
+				};
 
-					catbody.appendChild(row);
-				});
-			}else{
-				let products = await getListings(current);
-				products.forEach(prod=>productlist.appendChild(makeProductCard(prod)))
-			}
+				catbody.appendChild(row);
+			});
+			let products = await getListings(current);
+			products.forEach(prod=>productlist.appendChild(makeProductCard(prod)))
 		}
 
 		window.onload = render;
