@@ -1,5 +1,66 @@
 {% extends "page.html" %}
 
 {% block content %}
-    <h>Sell Items here</h>
+<div class="container mt-4">
+    <div class="card p-4">
+        <h2 class="mb-3">Sell an Item</h2>
+
+        {% if success %}
+            <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <form action="/sellitem?type={{ type }}&email={{ email }}" method="POST">
+            <div class="form-group">
+                <label for="seller_email">Seller Email</label>
+                <input type="text" name="seller_email" id="seller_email" class="form-control" value="{{ email }}" readonly required>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select name="category" id="category" class="form-control" required>
+                    <option value="">Select a Category</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="auction_title">Auction Title</label>
+                <input type="text" name="auction_title" id="auction_title" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="product_name">Product Name</label>
+                <input type="text" name="product_name" id="product_name" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="product_description">Product Description</label>
+                <textarea name="product_description" id="product_description" rows="4" class="form-control" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" name="quantity" id="quantity" min="1" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reserve_price">Reserve Price</label>
+                <input type="number" name="reserve_price" id="reserve_price" min="0" step="0.01" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="max_bids">Max Bids</label>
+                <input type="number" name="max_bids" id="max_bids" min="1" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Create Listing</button>
+        </form>
+    </div>
+</div>
 {% endblock %}

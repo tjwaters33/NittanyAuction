@@ -16,6 +16,73 @@
 		</div>
 	</div>
 </div>
+
+{% if type == "Sellers" %}
+<div class="container mt-3">
+	<div class="card p-3 mb-4">
+		<h3>My Listings</h3>
+
+		{% if listings and listings|length > 0 %}
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>Listing ID</th>
+					<th>Auction Title</th>
+					<th>Category</th>
+					<th>Reserve Price</th>
+					<th>Max Bids</th>
+					<th>Status</th>
+					<th>Edit</th>
+					<th>Cancel</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for listing in listings %}
+				<tr>
+					<td>{{ listing[0] }}</td>
+					<td>{{ listing[1] }}</td>
+					<td>{{ listing[2] }}</td>
+					<td>{{ listing[3] }}</td>
+					<td>{{ listing[4] }}</td>
+					<td>
+						{% if listing[5] == 1 %}
+							Active
+						{% elif listing[5] == 0 %}
+							Inactive
+						{% elif listing[5] == 2 %}
+							Sold
+						{% else %}
+							Unknown
+						{% endif %}
+					</td>
+					<td>
+    					<a class="btn btn-sm btn-primary"
+       						href="/edit_listing?type={{ type }}&email={{ email }}&listing_id={{ listing[0] }}">
+       						Edit
+    					</a>
+					</td>
+					<td>
+    					{% if listing[5] == 1 %}
+    					<form action="/cancel_listing?type={{ type }}&email={{ email }}" method="POST" style="margin:0;">
+        					<input type="hidden" name="seller_email" value="{{ email }}">
+        					<input type="hidden" name="listing_id" value="{{ listing[0] }}">
+        					<button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+    					</form>
+    					{% else %}
+    					<button class="btn btn-sm btn-secondary" disabled>Cancel</button>
+    					{% endif %}
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<p>No listings found for this seller.</p>
+		{% endif %}
+	</div>
+</div>
+{% endif %}
+
 	<script>
 		let path = ["Root"];
 

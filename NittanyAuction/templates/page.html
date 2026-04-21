@@ -15,14 +15,14 @@
         <div class="collapse navbar-collapse" id="navbarText">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    <a class="nav-link" onclick="window.location=`{{url_for('home')}}`+window.location.search;">Home</a>
+                    <a class="nav-link" onclick="window.location=`{{url_for('home')}}?type={{type}}{% if email %}&email={{email}}{% endif %}`;">Home</a>
                 </li>
                 <li class="nav-item">
-                <a class="nav-link" onclick="window.location=`{{url_for('search_listings')}}`+window.location.search;">Search</a>
+                <a class="nav-link" onclick="window.location=`{{url_for('search_listings')}}?type={{type}}{% if email %}&email={{email}}{% endif %}`;">Search</a>
                 </li>
                 {% if type == "Sellers" %}
                 <li class="nav-item">
-                    <a class="nav-link"  onclick="window.location=`/sellitem`+window.location.search;">Sell an Item</a>
+                    <a class="nav-link"  onclick="window.location=`/sellitem?type={{type}}{% if email %}&email={{email}}{% endif %}`;">Sell an Item</a>
                 </li>
 
                 {% elif type == "Bidders" %}
