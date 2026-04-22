@@ -800,8 +800,37 @@ def update_account():
 		return render_template('account.html', token=token, type=type, email=email, account_info=account_info,
 							   is_vendor=is_vendor, vendor_info=vendor_info, address_info=address_info,
 							   zipcode_info=zipcode_info, success='Account updated', error = error)
+	elif type == "Helpdesk":
+		role = request.form['role']
+		connection.execute(
+			'''
+            UPDATE helpdesk
+            SET role = ?
+            WHERE email = ?
+            ''',
+			(role, email)
+		)
 
+		account_info = [email, role]
+		is_vendor = False
+		vendor_info = []
+		address_info = []
+		zipcode_info = []
+		password = request.form['password']
+		if password.strip() != '':
+			connection.execute(
+				'''
+                UPDATE users
+                SET password = ?
+                WHERE email = ?
+                ''',
+				(init_database.hash_password(password), email)
+			)
 
+		connection.commit()
+		return render_template('account.html', token=token, type=type, email=email, account_info=account_info,
+							   is_vendor=is_vendor, vendor_info=vendor_info, address_info=address_info,
+							   zipcode_info=zipcode_info, success='Account updated', error=error)
 
 @app.route('/request_subcategory', methods=['POST'])
 def request_subcategory():
