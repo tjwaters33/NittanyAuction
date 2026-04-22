@@ -1,6 +1,38 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title></title>
+</head>
+<style>
+	input.is-invalid {
+		border-color: red;
+		outline-color: red;
+	}
+	.card-body {
+		padding: 1.25rem;
+		background: #85baff;
+		top: 30vh;
+		position: absolute;
+		width: 30vw;
+		left: 35vw;
+		border-radius: 1vw;
 
-{% block content %}
+	}
+	.title{
+		position: absolute;
+		padding: 1vw;
+		color:#0c0c89;
+	}
+</style>
+<body>
+<h1 class="title"><b>NittanyAuction: Register Local Vendor</b></h1>
+<div class="container-sm">
+    <div class="card-body">
+
         <form action="/register_local_vendor" method="POST">
 
             {% if error %}<div class="alert alert-danger mt-3">{{ error }}</div>{% endif %}
@@ -35,7 +67,7 @@
 
             <div class="form-group">
                 <label for="zipcode">Zipcode</label>
-                <input type="number" name="zipcode" required class="form-control">
+                <input type="text" name="zipcode" required class="form-control">
             </div>
 
             <div class="form-group">
@@ -68,4 +100,18 @@
 		<!--<form action="/forget_password" method="POST">
             <a class="btn btn-success" href="/reset_password" role="button">Forgot Password?</a>
         </form>-->
-{% endblock %}
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+</body>
+</html>

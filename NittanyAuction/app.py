@@ -111,7 +111,7 @@ def register_bidder_endpoint():
 				return render_template('register_bidder.html', error=error)
 			home_address_id = get_or_create_address(zipcode, street_num, street_name)
 			register_bidder(email, password, first_name, last_name, age, home_address_id, major)
-			return render_template('input.html', error=error)
+			return render_template('login.html', error=error)
 		else:
 			error = 'Email already registered'
 			return render_template('register_bidder.html', error=error)
@@ -133,7 +133,7 @@ def register_seller_endpoint():
 		if result:
 			print("Success seller")
 			register_seller(email, password, bank_routing_number,bank_account_number,balance)
-			return render_template('input.html', error=error)
+			return render_template('login.html', error=error)
 		else:
 			error = 'Email already registered'
 			return render_template('register_seller.html', error=error)
@@ -169,7 +169,7 @@ def register_local_vendor_endpoint():
 			address_id = get_or_create_address(zipcode, street_num, street_name)
 			register_seller(email, password, bank_routing_number,bank_account_number,balance)
 			register_local_vendor(email, business_name, address_id, phone_num)
-			return render_template('input.html', error=error)
+			return render_template('login.html', error=error)
 		else:
 			error = 'Email already registered'
 			return render_template('register_local_vendor.html', error=error)
@@ -542,6 +542,8 @@ def account():
 	account_info = []
 	is_vendor = False
 	vendor_info = []
+	address_info = []
+	zipcode_info = []
 	type = getUserType(token)
 	email = getUserEmail(token)
 	if type == "Bidders":
@@ -554,6 +556,30 @@ def account():
 			(email, )
 		)
 		account_info = cursor.fetchone()
+		cursor = connection.execute(
+			'''
+            SELECT *
+            FROM Address
+            WHERE address_id = ?
+            ''',
+			(account_info[4], )
+		)
+		address_info = cursor.fetchone()
+		print(" Address info:")
+		print(address_info)
+
+		cursor = connection.execute(
+			'''
+            SELECT *
+            FROM Zipcode_info
+            WHERE zipcode = ?
+            ''',
+			(address_info[1],)
+		)
+		zipcode_info = cursor.fetchone()
+		print(" Zipcode info:")
+		print (zipcode_info)
+
 	elif type == "Sellers":
 		cursor = connection.execute(
 			'''
@@ -576,6 +602,29 @@ def account():
 		vendor_info = cursor.fetchone()
 		if vendor_info:
 			is_vendor = True
+			cursor = connection.execute(
+				'''
+                SELECT *
+                FROM Address
+                WHERE address_id = ?
+                ''',
+				(vendor_info[2],)
+			)
+			address_info = cursor.fetchone()
+			print(" Address info:")
+			print(address_info)
+
+			cursor = connection.execute(
+				'''
+                SELECT *
+                FROM Zipcode_info
+                WHERE zipcode = ?
+                ''',
+				(address_info[1],)
+			)
+			zipcode_info = cursor.fetchone()
+			print(" Zipcode info:")
+			print(zipcode_info)
 	elif type == "Helpdesk":
 		cursor = connection.execute(
 			'''
@@ -587,7 +636,172 @@ def account():
 		)
 		account_info = cursor.fetchone()
 
-	return render_template('account.html', token = token, type = type, email = email, account_info = account_info, is_vendor = is_vendor, vendor_info = vendor_info)
+	return render_template('account.html', token = token, type = type, email = email, account_info = account_info, is_vendor = is_vendor, vendor_info = vendor_info, address_info = address_info, zipcode_info = zipcode_info)
+
+@app.route('/account_update', methods=['POST'])
+def update_account():
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	connection = init_database.get_connection()
+	type = getUserType(token)
+	email = getUserEmail(token)
+	error = None
+
+	cursor = connection.execute(
+		'''
+        SELECT *
+        FROM Local_Vendors
+        WHERE email = ?
+        ''',
+		(email,)
+	)
+	vendor_info = cursor.fetchone()
+
+	if vendor_info:
+		bank_routing_number = request.form['bank_routing_number']
+		bank_account_number = request.form['bank_account_number']
+		business_name = request.form['business_name']
+		street_num = request.form['street_num']
+		street_name = request.form['street_name']
+		city = request.form['city']
+		state = request.form['state']
+		zipcode = request.form['zipcode']
+		balance = request.form['balance']
+		customer_service_phone_number = request.form['customer_service_phone_number']
+
+		new_city, new_state = get_or_create_zipcode_info(zipcode, city, state)
+		if new_city != city or new_state != state:
+			error = 'Invalid zipcode, city, or state. City and state automatically corrected to zipcode.'
+			city = new_city
+			state = new_state
+
+		address_id = get_or_create_address(zipcode, street_num, street_name)
+
+		connection.execute(
+			'''
+            UPDATE sellers
+            SET bank_routing_number = ?, bank_account_number = ?
+            WHERE email = ?
+            ''',
+			(bank_routing_number, bank_account_number, email)
+		)
+
+		connection.execute(
+			'''
+            UPDATE local_vendors
+            SET business_name = ?, business_address_id = ?, customer_service_phone_number = ?
+            WHERE email = ?
+            ''',
+			(business_name, address_id, customer_service_phone_number, email)
+		)
+
+		account_info = [email, bank_routing_number, bank_account_number, balance]
+		is_vendor = True
+		vendor_info = [email, business_name, address_id, customer_service_phone_number]
+		address_info = [address_id, zipcode, street_num, street_name]
+		zipcode_info = [zipcode, city, state]
+		password = request.form['password']
+		if password.strip() != '':
+			connection.execute(
+				'''
+                UPDATE users
+                SET password = ?
+                WHERE email = ?
+                ''',
+				(init_database.hash_password(password), email)
+			)
+
+		connection.commit()
+		return render_template('account.html', token=token, type=type, email=email, account_info=account_info,
+							   is_vendor=is_vendor, vendor_info=vendor_info, address_info=address_info,
+							   zipcode_info=zipcode_info, success='Account updated', error=error)
+
+
+	elif type == "Sellers":
+		bank_routing_number = request.form['bank_routing_number']
+		bank_account_number = request.form['bank_account_number']
+		balance = request.form['balance']
+		connection.execute(
+			'''
+            UPDATE sellers
+            SET bank_routing_number = ?, bank_account_number = ?
+            WHERE email = ?
+            ''',
+			(bank_routing_number, bank_account_number, email)
+		)
+		account_info = [email, bank_routing_number, bank_account_number, balance]
+		is_vendor = False
+		vendor_info = []
+		address_info = []
+		zipcode_info = []
+		password = request.form['password']
+		if password.strip() != '':
+			connection.execute(
+				'''
+                UPDATE users
+                SET password = ?
+                WHERE email = ?
+                ''',
+				(init_database.hash_password(password), email)
+			)
+
+		connection.commit()
+		return render_template('account.html', token=token, type=type, email=email, account_info=account_info,
+							   is_vendor=is_vendor, vendor_info=vendor_info, address_info=address_info,
+							   zipcode_info=zipcode_info, success='Account updated', error=error)
+
+	elif type == "Bidders":
+		first_name = request.form['first_name']
+		last_name = request.form['last_name']
+		age = request.form['age']
+		street_num = request.form['street_num']
+		street_name = request.form['street_name']
+		city = request.form['city']
+		state = request.form['state']
+		zipcode = request.form['zipcode']
+		major = request.form['major']
+
+		new_city, new_state = get_or_create_zipcode_info(zipcode, city, state)
+		if new_city!=city or new_state!=state:
+			error = 'Invalid zipcode, city, or state. City and state automatically corrected to zipcode.'
+			city = new_city
+			state = new_state
+
+		address_id = get_or_create_address(zipcode, street_num, street_name)
+
+
+		connection.execute(
+			'''
+            UPDATE bidders
+            SET first_name = ?, last_name = ?, age = ?, home_address_id = ?, major = ?
+            WHERE email = ?
+            ''',
+			(first_name, last_name, age, address_id, major, email)
+		)
+
+		account_info = [email,first_name,last_name,age,address_id,major]
+		is_vendor = False
+		vendor_info = []
+		address_info = [address_id, zipcode, street_num, street_name]
+		zipcode_info = [zipcode, city, state]
+		password = request.form['password']
+		if password.strip() != '':
+			connection.execute(
+				'''
+				UPDATE users
+				SET password = ?
+				WHERE email = ?
+				''',
+				(init_database.hash_password(password), email)
+			)
+
+		connection.commit()
+		return render_template('account.html', token=token, type=type, email=email, account_info=account_info,
+							   is_vendor=is_vendor, vendor_info=vendor_info, address_info=address_info,
+							   zipcode_info=zipcode_info, success='Account updated', error = error)
+
+
 
 @app.route('/request_subcategory', methods=['POST'])
 def request_subcategory():
