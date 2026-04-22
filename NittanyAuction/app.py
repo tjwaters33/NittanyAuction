@@ -2,6 +2,7 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for
 import sqlite3 as sql
 import init_database
 import uuid
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -54,16 +55,20 @@ def home():
 def search_listings():
 	if request.method == 'POST':
 		searchString = request.form.get('searchString',None)
+		param = request.form.get('param',None)
 		print(searchString)
-		if searchString==None:
+		if searchString==None or param==None:
 			return jsonify([])
-		
+		print("SEARCH", searchString, param)
 		connection = init_database.get_connection()
 		# This makes columns named
 		connection.row_factory = sql.Row
-
+		
 		cursor = connection.execute(
-			"SELECT listing.Seller_Email, listing.Listing_ID, listing.Category, listing.Auction_Title, listing.Product_Name, listing.Product_Description, listing.Quantity, listing.Status, COALESCE(MAX(bid.Bid_Price), 0) as price FROM Auction_Listings listing LEFT JOIN Bids bid ON listing.Listing_ID = bid.Listing_ID WHERE listing.Auction_Title LIKE ? GROUP BY listing.Listing_ID",
+			"""SELECT listing.Seller_Email, listing.vendor_name, listing.Listing_ID, listing.Category, listing.Auction_Title, listing.Product_Name, listing.Product_Description, listing.Quantity, listing.Status, COALESCE(MAX(bid.Bid_Price), 0) as price FROM (SELECT listing.*, 
+    		vendor.Business_Name AS vendor_name
+			FROM Auction_Listings listing
+			LEFT JOIN Local_Vendors vendor ON listing.Seller_Email = vendor.Email) listing LEFT JOIN Bids bid ON listing.Listing_ID = bid.Listing_ID WHERE listing."""+param+""" LIKE ? GROUP BY listing.Listing_ID""",
 			(f"%{searchString}%",)
 		)
 
@@ -313,7 +318,7 @@ def get_listings():
 	connection.row_factory = sql.Row
 
 	cursor = connection.execute(
-		""" SELECT listing.Seller_Email, listing.Listing_ID, listing.Category, listing.Auction_Title, listing.Product_Name, listing.Product_Description, listing.Quantity, listing.Status, COALESCE(MAX(bid.Bid_Price), 0) as price FROM (SELECT listing.*, 
+		""" SELECT listing.Seller_Email, listing.Listing_ID, listing.Category, listing.vendor_name, listing.Auction_Title, listing.Product_Name, listing.Product_Description, listing.Quantity, listing.Status, COALESCE(MAX(bid.Bid_Price), 0) as price FROM (SELECT listing.*, 
     		vendor.Business_Name AS vendor_name
 			FROM Auction_Listings listing
 			LEFT JOIN Local_Vendors vendor ON listing.Seller_Email = vendor.Email
@@ -369,9 +374,7 @@ def sellitem():
 					'''
 					SELECT COALESCE(MAX(listing_id), 0) + 1
 					FROM Auction_Listings
-					WHERE seller_email = ?
-					''',
-					(seller_email,)
+					'''
 				)
 				next_listing_id = cursor.fetchone()[0]
 
@@ -524,7 +527,10 @@ def my_listings():
 	connection.row_factory = sql.Row
 
 	cursor = connection.execute(
-		"SELECT listing.Seller_Email, listing.Listing_ID, listing.Category, listing.Auction_Title, listing.Product_Name, listing.Product_Description, listing.Quantity, listing.Status, COALESCE(MAX(bid.Bid_Price), 0) as price FROM Auction_Listings listing LEFT JOIN Bids bid ON listing.Listing_ID = bid.Listing_ID WHERE listing.Seller_Email = ? GROUP BY listing.Listing_ID",
+		"""SELECT listing.Seller_Email, listing.vendor_name, listing.Listing_ID, listing.Category, listing.Auction_Title, listing.Product_Name, listing.Product_Description, listing.Quantity, listing.Status, COALESCE(MAX(bid.Bid_Price), 0) as price FROM (SELECT listing.*, 
+    		vendor.Business_Name AS vendor_name
+			FROM Auction_Listings listing
+			LEFT JOIN Local_Vendors vendor ON listing.Seller_Email = vendor.Email) listing LEFT JOIN Bids bid ON listing.Listing_ID = bid.Listing_ID WHERE listing.Seller_Email = ? GROUP BY listing.Listing_ID""",
 		(getUserEmail(token),)
 	)
 
@@ -998,6 +1004,89 @@ def request_subcategory():
 		connection.close()
 
 	return redirect(url_for('sellitem', token = token, request_success=1))
+
+@app.route('/vendor_view', methods=['GET'])
+def vendor_view():
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	email = request.args.get('vendor')
+	print("VENDOR",email)
+	connection = init_database.get_connection()
+	is_vendor = False
+	cursor = connection.execute(
+		'''
+		SELECT *
+		FROM Local_Vendors
+		WHERE email = ?
+		''',
+		(email, )
+	)
+	vendor_info = cursor.fetchone()
+	address_info = None
+	zipcode_info = None
+	if vendor_info:
+		is_vendor = True
+		cursor = connection.execute(
+			'''
+			SELECT *
+			FROM Address
+			WHERE address_id = ?
+			''',
+			(vendor_info[2],)
+		)
+		address_info = cursor.fetchone()
+		print(" Address info:")
+		print(address_info)
+
+		cursor = connection.execute(
+			'''
+			SELECT *
+			FROM Zipcode_info
+			WHERE zipcode = ?
+			''',
+			(address_info[1],)
+		)
+		zipcode_info = cursor.fetchone()
+	cursor = connection.execute(
+			'''
+			SELECT *
+			FROM Ratings
+			WHERE Seller_Email = ?
+			''',
+			(email,)
+		)
+	ratings = cursor.fetchall()
+	return render_template('vendor_view.html', token = token, type = getUserType(token), email = getUserEmail(token), vendor_email = email, is_vendor=is_vendor, vendor_info = vendor_info, address_info = address_info, zipcode_info = zipcode_info, ratings = ratings,error = request.args.get("error",None))
+
+@app.route('/leave_rating', methods=['POST'])
+def leave_rating():
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	vendor = request.args.get('vendor')
+	rating = request.form.get("rating")
+	rating_desc = request.form.get("rating_desc")
+	connection = init_database.get_connection()
+	cursor = connection.execute(
+		"SELECT * FROM Ratings WHERE bidder_email = ? AND seller_email = ?",
+		(getUserEmail(token),vendor,)
+	)
+	error = None
+	if cursor.fetchone():
+		error = "Already left a rating"
+	else:
+		connection.execute(
+			"""
+			INSERT INTO Ratings
+				(Bidder_Email,Seller_Email,Date,Rating,Rating_Desc)
+				VALUES (?, ?, ?, ?, ?)
+			""",
+			(getUserEmail(token),vendor,datetime.now().strftime("%m/%d/%y"),rating,rating_desc)
+		)
+		connection.commit()
+	connection.close()
+	return redirect(url_for('vendor_view',token=token,vendor=vendor,error=error))
 
 if __name__ == "__main__":
 	app.run()

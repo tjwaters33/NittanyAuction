@@ -1,0 +1,53 @@
+{% extends "page.html" %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='homeStyles.css') }}"></link>
+<div class="container mt-4">
+    {% if is_vendor %}
+    <h2>{{ vendor_info[1] }} ({{ vendor_info[0] }})</h2>
+    <br>
+    <h4 class="text-muted">{{ address_info[2] }} {{ address_info[3] }}</h4>
+    <h4 class="text-muted">{{ zipcode_info[1] }}, {{ zipcode_info[2] }} {{ zipcode_info[0] }}</h4>
+<hr>
+    {% endif %}
+  <h4 class="mb-3">{% if is_vendor %}
+    {{ vendor_info[1] }}
+{% else %}
+    {{ vendor_email }}
+{% endif %} has {{ ratings | length }} rating(s)</h4>
+ 
+  <div style="display: grid; grid-template-columns: auto 1fr auto auto; gap: 0.75rem 1.5rem; align-items: center;">
+    {% for rating in ratings %}
+        <hr style="grid-column: 1 / -1; margin: 0; border-top: 1px solid #ced4da">
+      <h6><strong class="text-nowrap">{{ rating[3] }}</strong></h6>
+      <h6>{{ rating[4] }}</h6>
+      <h6>by {{ rating[0] }} </h6>
+        <h6>on {{ rating[2] }}</h6>
+    {% endfor %}
+  </div>
+  <hr>
+  <form action="{{url_for('leave_rating')}}?token={{token}}&vendor={{vendor_email}}" method="POST">
+  <div class="input-group mt-3">
+    <div class="input-group-prepend">
+        <select class="custom-select" name="rating">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option selected value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        </select>
+    </div>
+    <input type="text" class="form-control" placeholder="" name="rating_desc">
+    <div class="input-group-append">
+        <button class="btn btn-outline-secondary" type="submit">Submit</button>
+    </div>
+    </div>
+  </form>
+    {% if error %}
+        <div class="alert alert-danger mt-2">{{ error }}</div>
+    {% endif %}
+</div>
+
+
+{% endblock %}

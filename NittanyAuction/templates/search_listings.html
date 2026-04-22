@@ -7,6 +7,12 @@
   <input type="text" class="form-control" id="searchString">
   <div class="input-group-append">
     <button class="btn btn-outline-primary" type="button" onclick="render()">Search</button>
+  <select class="form-select" id="param">
+	<option selected value="Auction_Title">Auction Title</option>
+	<option value="Product_Name">Product Name</option>
+	<option value="Product_Description">Product Description</option>
+	<option value="Seller_Email">Seller Email</option>
+	</select>
   </div>
 </div>
 <div id="product-list" class="product-list">
@@ -14,9 +20,10 @@
 </div>
 	<script>
 
-		async function searchListings(searchString){
+		async function searchListings(searchString, param){
 			const formData = new FormData();
 			formData.append("searchString", searchString);
+			formData.append("param", param);
 
 			const response = await fetch("{{ url_for('search_listings') }}", {
 				method: "POST",
@@ -29,12 +36,14 @@
 		async function render() {
 			const searchStr = document.getElementById("searchString").value;
 			if(searchStr=="") return
+			const param = document.getElementById("param").value;
+			if(param=="") return
 
 			const productlist = document.getElementById("product-list")
 
 			productlist.innerHTML = ""
 
-			let products = await searchListings(searchStr);
+			let products = await searchListings(searchStr,param);
 			products.forEach(prod=>productlist.appendChild(makeProductCard(prod, "{{ token }}")))
 		}
 

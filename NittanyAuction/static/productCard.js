@@ -33,7 +33,7 @@ function makeProductCard(prod, token){
                 </div>
                 <div class="row mt-1 mb-2">
                     <div class="col">
-                        <p class="small mb-0"><a href="/vendor_view?token={{token}}&vendor?=${prod.seller_email}">${seller}</a></p>
+                        <p class="small mb-0"><a href="vendor_view?token=`+token+`&vendor=${prod.seller_email}">${seller}</a></p>
                     </div>
                 </div>
             </div>
