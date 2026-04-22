@@ -1093,69 +1093,6 @@ def leave_rating():
 	connection.close()
 	return redirect(url_for('vendor_view',token=token,vendor=vendor,error=error))
 
-<<<<<<< Updated upstream
-@app.route("/requests")
-def requests():
-	token = request.args.get('token')
-	if not token in sessions:
-		return redirect('/')
-	
-	connection = init_database.get_connection()
-	cursor = connection.execute(
-		"""
-		SELECT * FROM Requests WHERE
-		(helpdesk_staff_email = ? OR helpdesk_staff_email = 'helpdeskteam@lsu.edu') AND request_status = 0
-		""",
-		(getUserEmail(token), )
-	)
-
-	requests = cursor.fetchall()
-
-	return render_template('requests.html',token = token, type = getUserType(token), email = getUserEmail(token), requests = requests)
-
-# @app.route("/add_to_cart", methods=['POST'])
-# def add_to_cart():
-# 	token = request.args.get('token')
-# 	if not token in sessions:
-# 		return redirect('/')
-# 	connection = init_database.get_connection()
-# 	listing_id = request.args.get('listing_id',None)
-# 	print("ADD TO CART", getUserEmail(token), listing_id)
-# 	if listing_id !=None:
-# 		connection.execute(
-# 			"""
-# 			INSERT INTO Shopping_Carts
-# 					(Bidder_Email,listing_id)
-# 					VALUES (?, ?)
-# 			""",
-# 			(getUserEmail(token), listing_id)
-# 		)
-# 		connection.commit()
-# 		connection.close()
-# 		return jsonify("success")
-# 	return jsonify("failed")
-
-# @app.route("/cart_view", methods = ['GET'])
-# def cart_view():
-# 	token = request.args.get('token')
-# 	if not token in sessions:
-# 		return redirect('/')
-# 	connection = init_database.get_connection()
-# 	connection.row_factory = sql.Row
-# 	# cursor = connection.execute(
-# 	# 	"""
-# 	# 	SELECT * FROM Auction_Listings listing, Shopping_Carts cart WHERE
-# 	# 	cart.listing_id = listing.listing_id AND cart.bidder_email = ?
-# 	# 	""",
-# 	# 	(getUserEmail(token), )
-# 	# )
-# 	cursor = connection.execute(
-# 		"""
-# 		SELECT * FROM Shopping_Carts
-# 	""")
-# 	results = cursor.fetchall()
-# 	return render_template('cart_view.html', listings = [dict(row) for row in results], token = token, type = getUserType(token), email = getUserEmail(token))
-=======
 @app.route('/cart', methods=['GET'])
 def view_cart():
 	token = request.args.get('token')
@@ -1227,7 +1164,6 @@ def remove_from_cart():
 		if not (item['listing_id'] == listing_id and item['seller_email'] == seller_email)]
 	
 	return redirect(url_for('view_cart', token=token))
->>>>>>> Stashed changes
 
 if __name__ == "__main__":
 	app.run()
