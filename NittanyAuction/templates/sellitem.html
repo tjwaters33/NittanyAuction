@@ -13,7 +13,7 @@
             <div class="alert alert-danger">{{ error }}</div>
         {% endif %}
 
-        <form action="/sellitem?type={{ type }}&email={{ email }}" method="POST">
+        <form action="/sellitem?token={{ token }}" method="POST">
             <div class="form-group">
                 <label for="seller_email">Seller Email</label>
                 <input type="text" name="seller_email" id="seller_email" class="form-control" value="{{ email }}" readonly required>

@@ -1,10 +1,20 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for
 import sqlite3 as sql
 import init_database
+import uuid
 
 app = Flask(__name__)
 
 host = 'http://127.0.0.1:5000/'
+
+# maps token to (email,type)
+sessions = dict()
+
+def getUserEmail(token):
+	return sessions[token][0]
+
+def getUserType(token):
+	return sessions[token][1]
 
 @app.route('/')
 def index():
@@ -12,23 +22,25 @@ def index():
 
 @app.route('/login', methods=['POST', 'GET'])
 def login_endpoint():
-
 	error = None
 	if request.method == 'POST':
 		result = valid_name(request.form['type'], request.form['email'], request.form['password'])
 		if result:
-			if request.form['type'] == 'Sellers':
-				return redirect(url_for('home', type=request.form['type'], email=request.form['email']))
-			else:
-				return redirect(url_for('home', type=request.form['type']))
+			token = uuid.uuid1().hex
+			sessions[token] = (request.form['email'], request.form['type'])
+			print(f"NEW SESSION {request.form['email']} {token}")
+			return redirect(url_for('home', token=token, type=request.form['type'], email=request.form['email']))
 		else:
 			error = 'invalid input name'
 	return render_template('login.html', error=error)
 
 @app.route('/home', methods=['GET'])
 def home():
-	type = request.args.get('type')
-	email = request.args.get('email')
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	type = getUserType(token)
+	email = getUserEmail(token)
 	listings = []
 
 	if type == 'Sellers' and email is not None:
@@ -47,10 +59,13 @@ def home():
 		listings = cursor.fetchall()
 		connection.close()
 
-	return render_template('home.html', type=type, email=email, listings=listings)
+	return render_template('home.html', token = token, type=type, email=email, listings=listings)
 
 @app.route('/search_listings', methods=['GET','POST'])
 def search_listings():
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
 	if request.method == 'POST':
 		searchString = request.form.get('searchString',None)
 
@@ -69,7 +84,7 @@ def search_listings():
 		results = cursor.fetchall()
 		return jsonify([dict(row) for row in results])
 	else:
-		return render_template('search_listings.html', type = request.args.get('type'))
+		return render_template('search_listings.html', token = token, type = getUserType(token), email = getUserEmail(token))
 
 @app.route('/register_bidder', methods=['GET', 'POST'])
 def register_bidder_endpoint():
@@ -323,168 +338,256 @@ def get_listings():
 
 @app.route('/sellitem', methods=['GET', 'POST'])
 def sellitem():
-    error = None
-    success = None
+	error = None
+	success = None
 
-    connection = init_database.get_connection()
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	connection = init_database.get_connection()
 
-    # get categories (same pattern as other queries)
-    cursor = connection.execute(
-        'SELECT category_name FROM Categories ORDER BY category_name'
-    )
-    categories = [row[0] for row in cursor.fetchall()]
+	# get categories (same pattern as other queries)
+	cursor = connection.execute(
+		'SELECT category_name FROM Categories ORDER BY category_name'
+	)
+	categories = [row[0] for row in cursor.fetchall()]
 
-    if request.method == 'POST':
-        seller_email = request.form.get('seller_email', None)
-        category = request.form.get('category', None)
-        auction_title = request.form.get('auction_title', None)
-        product_name = request.form.get('product_name', None)
-        product_description = request.form.get('product_description', None)
-        quantity = request.form.get('quantity', None)
-        reserve_price = request.form.get('reserve_price', None)
-        max_bids = request.form.get('max_bids', None)
+	if request.method == 'POST':
+		print("MAKING LISTING")
+		seller_email = request.form.get('seller_email', None)
+		category = request.form.get('category', None)
+		auction_title = request.form.get('auction_title', None)
+		product_name = request.form.get('product_name', None)
+		product_description = request.form.get('product_description', None)
+		quantity = request.form.get('quantity', None)
+		reserve_price = request.form.get('reserve_price', None)
+		max_bids = request.form.get('max_bids', None)
 
-        # basic validation (same style as other endpoints)
-        if None in [seller_email, category, auction_title, product_name, product_description, quantity, reserve_price, max_bids]:
-            error = "Missing required fields"
-        else:
-            # check seller exists
-            cursor = connection.execute(
-                'SELECT COUNT(*) FROM Sellers WHERE email = ?',
-                (seller_email,)
-            )
-            if cursor.fetchone()[0] != 1:
-                error = "Seller email not found"
-            else:
-                # get next listing_id
-                cursor = connection.execute(
-                    '''
-                    SELECT COALESCE(MAX(listing_id), 0) + 1
-                    FROM Auction_Listings
-                    WHERE seller_email = ?
-                    ''',
-                    (seller_email,)
-                )
-                next_listing_id = cursor.fetchone()[0]
+		# basic validation (same style as other endpoints)
+		if None in [seller_email, category, auction_title, product_name, product_description, quantity, reserve_price, max_bids]:
+			error = "Missing required fields"
+		else:
+			# check seller exists
+			cursor = connection.execute(
+				'SELECT COUNT(*) FROM Sellers WHERE email = ?',
+				(seller_email,)
+			)
+			if cursor.fetchone()[0] != 1:
+				error = "Seller email not found"
+			else:
+				# get next listing_id
+				cursor = connection.execute(
+					'''
+					SELECT COALESCE(MAX(listing_id), 0) + 1
+					FROM Auction_Listings
+					WHERE seller_email = ?
+					''',
+					(seller_email,)
+				)
+				next_listing_id = cursor.fetchone()[0]
 
-                # insert listing
-                connection.execute(
-                    '''
-                    INSERT INTO Auction_Listings
-                    (seller_email, listing_id, category, auction_title, product_name,
-                     product_description, quantity, reserve_price, max_bids, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''',
-                    (
-                        seller_email,
-                        next_listing_id,
-                        category,
-                        auction_title,
-                        product_name,
-                        product_description,
-                        int(quantity),
-                        float(reserve_price),
-                        int(max_bids),
-                        1
-                    )
-                )
+				# insert listing
+				connection.execute(
+					'''
+					INSERT INTO Auction_Listings
+					(seller_email, listing_id, category, auction_title, product_name,
+						product_description, quantity, reserve_price, max_bids, status)
+					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+					''',
+					(
+						seller_email,
+						next_listing_id,
+						category,
+						auction_title,
+						product_name,
+						product_description,
+						int(quantity),
+						float(reserve_price),
+						int(max_bids),
+						1
+					)
+				)
 
-                connection.commit()
-                success = "Listing created successfully"
+				connection.commit()
+				success = "Listing created successfully"
 
-    connection.close()
-    return render_template('sellitem.html', type=request.args.get('type'), email=request.args.get('email'), categories=categories, error=error, success=success)
+	connection.close()
+	return render_template('sellitem.html', token = token, type = getUserType(token), email = getUserEmail(token), categories=categories, error=error, success=success)
 
 @app.route('/cancel_listing', methods=['POST'])
 def cancel_listing():
-    seller_email = request.form.get('seller_email', None)
-    listing_id = request.form.get('listing_id', None)
-    type = request.args.get('type')
-    email = request.args.get('email')
+	listing_id = request.form.get('listing_id', None)
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	seller_email = getUserEmail(token)
 
-    if seller_email is not None and listing_id is not None:
-        connection = init_database.get_connection()
+	if seller_email is not None and listing_id is not None:
+		connection = init_database.get_connection()
 
-        connection.execute(
-            '''
-            UPDATE Auction_Listings
-            SET status = 0
-            WHERE seller_email = ? AND listing_id = ?
-            ''',
-            (seller_email, int(listing_id))
-        )
+		connection.execute(
+			'''
+			UPDATE Auction_Listings
+			SET status = 0
+			WHERE seller_email = ? AND listing_id = ?
+			''',
+			(seller_email, int(listing_id))
+		)
 
-        connection.commit()
-        connection.close()
+		connection.commit()
+		connection.close()
 
-    return redirect(url_for('home', type=type, email=email))
+	return redirect(url_for('home', token = token, type = getUserType(token), email = getUserEmail(token)))
 
 @app.route('/edit_listing', methods=['GET', 'POST'])
 def edit_listing():
-    error = None
-    success = None
+	error = None
+	success = None
 
-    seller_email = request.args.get('email')
-    listing_id = request.args.get('listing_id')
+	listing_id = request.form.get('listing_id', None)
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
 
-    connection = init_database.get_connection()
+	connection = init_database.get_connection()
 
-    cursor = connection.execute(
-        'SELECT category_name FROM Categories ORDER BY category_name'
-    )
-    categories = [row[0] for row in cursor.fetchall()]
+	cursor = connection.execute(
+		'SELECT category_name FROM Categories ORDER BY category_name'
+	)
+	categories = [row[0] for row in cursor.fetchall()]
 
-    if request.method == 'POST':
-        seller_email = request.form.get('seller_email', None)
-        listing_id = request.form.get('listing_id', None)
-        category = request.form.get('category', None)
-        auction_title = request.form.get('auction_title', None)
-        product_name = request.form.get('product_name', None)
-        product_description = request.form.get('product_description', None)
-        quantity = request.form.get('quantity', None)
-        reserve_price = request.form.get('reserve_price', None)
-        max_bids = request.form.get('max_bids', None)
+	if request.method == 'POST':
+		seller_email = request.form.get('seller_email', None)
+		listing_id = request.form.get('listing_id', None)
+		category = request.form.get('category', None)
+		auction_title = request.form.get('auction_title', None)
+		product_name = request.form.get('product_name', None)
+		product_description = request.form.get('product_description', None)
+		quantity = request.form.get('quantity', None)
+		reserve_price = request.form.get('reserve_price', None)
+		max_bids = request.form.get('max_bids', None)
 
-        if None in [seller_email, listing_id, category, auction_title, product_name, product_description, quantity, reserve_price, max_bids]:
-            error = "Missing required fields"
-        else:
-            connection.execute(
-                '''
-                UPDATE Auction_Listings
-                SET category = ?, auction_title = ?, product_name = ?, product_description = ?,
-                    quantity = ?, reserve_price = ?, max_bids = ?
-                WHERE seller_email = ? AND listing_id = ?
-                ''',
-                (
-                    category,
-                    auction_title,
-                    product_name,
-                    product_description,
-                    int(quantity),
-                    float(reserve_price),
-                    int(max_bids),
-                    seller_email,
-                    int(listing_id)
-                )
-            )
+		if seller_email != getUserEmail(token):
+			error = "Unauthorized Access"	
+		elif None in [seller_email, listing_id, category, auction_title, product_name, product_description, quantity, reserve_price, max_bids]:
+			error = "Missing required fields"
+		else:
+			connection.execute(
+				'''
+				UPDATE Auction_Listings
+				SET category = ?, auction_title = ?, product_name = ?, product_description = ?,
+					quantity = ?, reserve_price = ?, max_bids = ?
+				WHERE seller_email = ? AND listing_id = ?
+				''',
+				(
+					category,
+					auction_title,
+					product_name,
+					product_description,
+					int(quantity),
+					float(reserve_price),
+					int(max_bids),
+					seller_email,
+					int(listing_id)
+				)
+			)
 
-            connection.commit()
-            success = "Listing updated successfully"
+			connection.commit()
+			success = "Listing updated successfully"
 
-    cursor = connection.execute(
-        '''
-        SELECT seller_email, listing_id, category, auction_title, product_name,
-               product_description, quantity, reserve_price, max_bids, status
-        FROM Auction_Listings
-        WHERE seller_email = ? AND listing_id = ?
-        ''',
-        (seller_email, int(listing_id))
-    )
+	cursor = connection.execute(
+		'''
+		SELECT seller_email, listing_id, category, auction_title, product_name,
+				product_description, quantity, reserve_price, max_bids, status
+		FROM Auction_Listings
+		WHERE seller_email = ? AND listing_id = ?
+		''',
+		(seller_email, int(listing_id))
+	)
 
-    listing = cursor.fetchone()
-    connection.close()
+	listing = cursor.fetchone()
+	connection.close()
 
-    return render_template('edit_listing.html', type=request.args.get('type'), email=request.args.get('email'), categories=categories, listing=listing, error=error, success=success)
+	return render_template('edit_listing.html', token = token, type = getUserType(token), email = getUserEmail(token), categories=categories, listing=listing, error=error, success=success)
+
+@app.route('/view_listing', methods=['GET'])
+def view_listing():
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	listing_id = request.args.get('listing_id', None)
+
+	connection = init_database.get_connection()
+	cursor = connection.execute(
+		'''
+		SELECT *
+		FROM Auction_Listings
+		WHERE listing_id = ?
+		''',
+		(int(listing_id), )
+	)
+
+	listing = cursor.fetchone()
+
+	isowner = getUserEmail(token) == listing[0]
+	return render_template('view_listing.html', token = token, type = getUserType(token), email = getUserEmail(token), listing=listing, isowner = isowner)
+
+@app.route('/account', methods=['GET'])
+def account():
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	connection = init_database.get_connection()
+
+	account_info = []
+	is_vendor = False
+	vendor_info = []
+	type = getUserType(token)
+	email = getUserEmail(token)
+	if type == "Bidders":
+		cursor = connection.execute(
+			'''
+			SELECT *
+			FROM Bidders
+			WHERE email = ?
+			''',
+			(email, )
+		)
+		account_info = cursor.fetchone()
+	elif type == "Sellers":
+		cursor = connection.execute(
+			'''
+			SELECT *
+			FROM Sellers
+			WHERE email = ?
+			''',
+			(email, )
+		)
+		account_info = cursor.fetchone()
+
+		cursor = connection.execute(
+			'''
+			SELECT *
+			FROM Local_Vendors
+			WHERE email = ?
+			''',
+			(email, )
+		)
+		vendor_info = cursor.fetchone()
+		if vendor_info:
+			is_vendor = True
+	elif type == "Helpdesk":
+		cursor = connection.execute(
+			'''
+			SELECT *
+			FROM Helpdesk
+			WHERE email = ?
+			''',
+			(email, )
+		)
+		account_info = cursor.fetchone()
+
+	return render_template('account.html', token = token, type = type, email = email, account_info = account_info, is_vendor = is_vendor, vendor_info = vendor_info)
 
 if __name__ == "__main__":
 	app.run()

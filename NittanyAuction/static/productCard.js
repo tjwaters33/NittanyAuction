@@ -1,4 +1,4 @@
-function makeProductCard(prod){
+function makeProductCard(prod, token){
     const seller = prod.vendor_name?prod.vendor_name: prod.seller_email;
     const card = document.createElement('div');
     card.className = 'card';
@@ -27,7 +27,7 @@ function makeProductCard(prod){
                 </div>
             </div>
 
-            <a href="/listings/${prod.listing_id}" class="btn btn-primary mt-auto btn-sm w-100">View listing</a>
+            <a href="/view_listing?token=`+token+`&listing_id=${prod.listing_id}" class="btn btn-primary mt-auto btn-sm w-100">View listing</a>
         </div>
     `;
     return card;

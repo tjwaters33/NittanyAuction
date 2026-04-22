@@ -14,7 +14,7 @@
         {% endif %}
 
         {% if listing %}
-        <form action="/edit_listing?type={{ type }}&email={{ email }}&listing_id={{ listing[1] }}" method="POST">
+        <form action="/edit_listing?token={{ token }}&listing_id={{ listing[1] }}" method="POST">
             <input type="hidden" name="seller_email" value="{{ listing[0] }}">
             <input type="hidden" name="listing_id" value="{{ listing[1] }}">
 

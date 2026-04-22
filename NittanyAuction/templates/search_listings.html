@@ -35,7 +35,7 @@
 			productlist.innerHTML = ""
 
 			let products = await searchListings(searchStr);
-			products.forEach(prod=>productlist.appendChild(makeProductCard(prod)))
+			products.forEach(prod=>productlist.appendChild(makeProductCard(prod, "{{ token }}")))
 		}
 
 	</script>
