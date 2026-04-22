@@ -40,6 +40,7 @@ def create_tables():
     DROP TABLE IF EXISTS Zipcode_Info;
     DROP TABLE IF EXISTS Categories;
     DROP TABLE IF EXISTS Users;
+    DROP TABLE IF EXISTS Shopping_Carts;
     """)
 
     # Execute SQL relationship scripts from phase 1 report
@@ -188,7 +189,7 @@ def create_tables():
 
 # Import user dataset
 # Ensure hashed password storage!
-def import_users():
+def import_users(): 
     # connect database
     connect = get_connection()
     cur = connect.cursor()
@@ -619,7 +620,6 @@ def import_requests():
     f.close()
     connect.commit()
     connect.close()
-
 
 # !!! End data import functions!!!
 

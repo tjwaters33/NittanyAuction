@@ -32,13 +32,10 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{url_for('my_bids')}}?token={{ token }}">My bids</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/cart?token={{ token }}">Shopping Cart</a>
-                </li>
 
                 {% elif type == "Helpdesk" %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/tickets?token={{ token }}">Tickets</a>
+                    <a class="nav-link" href="{{url_for('requests')}}?token={{ token }}">Requests</a>
                 </li>
 
                 {% else %}

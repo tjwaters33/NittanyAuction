@@ -404,7 +404,7 @@ def sellitem():
 				success = "Listing created successfully"
 
 	connection.close()
-	return render_template('sellitem.html', token = token, type = getUserType(token), email = getUserEmail(token), categories=categories, error=error, success=success)
+	return render_template('sellitem.html', token = token, type = getUserType(token), email = getUserEmail(token), categories=categories, error=error, success=success, request_success = request.args.get("request_success", None))
 
 @app.route('/cancel_listing', methods=['POST'])
 def cancel_listing():
@@ -515,7 +515,7 @@ def edit_listing():
 	listing = cursor.fetchone()
 	connection.close()
 
-	return render_template('edit_listing.html', token = token, type = getUserType(token), email = getUserEmail(token), categories=categories, listing=listing, error=error, success=success)
+	return render_template('edit_listing.html', token = token, type = getUserType(token), email = getUserEmail(token), categories=categories, listing=listing, error=error, success=success, request_success = request.args.get("request_success", None))
 
 @app.route('/my_listings', methods=['GET'])
 def my_listings():
@@ -938,7 +938,7 @@ def update_account():
 		connection.execute(
 			'''
             UPDATE helpdesk
-            SET role = ?
+            SET position = ?
             WHERE email = ?
             ''',
 			(role, email)
@@ -982,7 +982,7 @@ def request_subcategory():
 		cursor = connection.execute('SELECT COALESCE(MAX(request_id), 0) + 1 FROM Requests')
 		next_request_id = cursor.fetchone()[0]
 
-		request_desc = f"Seller {email} requested new subcategory '{requested_category}' under '{parent_category}'."
+		request_desc = f"Add a new subcategory '{requested_category}' under '{parent_category}'."
 
 		connection.execute(
 			'''
@@ -1003,7 +1003,7 @@ def request_subcategory():
 		connection.commit()
 		connection.close()
 
-	return redirect(url_for('sellitem', token = token, request_success=1))
+	return redirect(url_for(request.args.get("returnto",None), token = token, request_success=1, listing_id = request.args.get("listing_id",None)))
 
 @app.route('/vendor_view', methods=['GET'])
 def vendor_view():
@@ -1087,6 +1087,68 @@ def leave_rating():
 		connection.commit()
 	connection.close()
 	return redirect(url_for('vendor_view',token=token,vendor=vendor,error=error))
+
+@app.route("/requests")
+def requests():
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	
+	connection = init_database.get_connection()
+	cursor = connection.execute(
+		"""
+		SELECT * FROM Requests WHERE
+		(helpdesk_staff_email = ? OR helpdesk_staff_email = 'helpdeskteam@lsu.edu') AND request_status = 0
+		""",
+		(getUserEmail(token), )
+	)
+
+	requests = cursor.fetchall()
+
+	return render_template('requests.html',token = token, type = getUserType(token), email = getUserEmail(token), requests = requests)
+
+# @app.route("/add_to_cart", methods=['POST'])
+# def add_to_cart():
+# 	token = request.args.get('token')
+# 	if not token in sessions:
+# 		return redirect('/')
+# 	connection = init_database.get_connection()
+# 	listing_id = request.args.get('listing_id',None)
+# 	print("ADD TO CART", getUserEmail(token), listing_id)
+# 	if listing_id !=None:
+# 		connection.execute(
+# 			"""
+# 			INSERT INTO Shopping_Carts
+# 					(Bidder_Email,listing_id)
+# 					VALUES (?, ?)
+# 			""",
+# 			(getUserEmail(token), listing_id)
+# 		)
+# 		connection.commit()
+# 		connection.close()
+# 		return jsonify("success")
+# 	return jsonify("failed")
+
+# @app.route("/cart_view", methods = ['GET'])
+# def cart_view():
+# 	token = request.args.get('token')
+# 	if not token in sessions:
+# 		return redirect('/')
+# 	connection = init_database.get_connection()
+# 	connection.row_factory = sql.Row
+# 	# cursor = connection.execute(
+# 	# 	"""
+# 	# 	SELECT * FROM Auction_Listings listing, Shopping_Carts cart WHERE
+# 	# 	cart.listing_id = listing.listing_id AND cart.bidder_email = ?
+# 	# 	""",
+# 	# 	(getUserEmail(token), )
+# 	# )
+# 	cursor = connection.execute(
+# 		"""
+# 		SELECT * FROM Shopping_Carts
+# 	""")
+# 	results = cursor.fetchall()
+# 	return render_template('cart_view.html', listings = [dict(row) for row in results], token = token, type = getUserType(token), email = getUserEmail(token))
 
 if __name__ == "__main__":
 	app.run()

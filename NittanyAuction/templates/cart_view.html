@@ -1,0 +1,29 @@
+{% extends "page.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='homeStyles.css') }}"></link>
+<script src="{{ url_for('static', filename='productCard.js') }}"></script>
+    {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+<div id="product-list" class="product-list">
+
+</div>
+	<script>
+
+		function render(json) {
+			const productlist = document.getElementById("product-list")
+
+			productlist.innerHTML = ""
+
+			let products = JSON.parse(json)
+			products.forEach(prod=>productlist.appendChild(makeProductCard(prod, "{{ token }}")))
+		}
+
+        window.onload = render(`{{ listings | tojson }}`)
+	</script>
+{% endblock %}

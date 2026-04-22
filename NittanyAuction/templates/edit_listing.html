@@ -71,8 +71,14 @@
         {% endif %}
         <hr>
         <h4 class="mt-4">Request a New Subcategory</h4>
+        {% if request_success %}
+            <div class="alert alert-success">
+                Subcategory request submitted successfully.
+            </div>
+        {% endif %}
 
-        <form action="/request_subcategory?token={{token}}" method="POST">
+
+        <form action="/request_subcategory?token={{token}}&returnto=edit_listing&listing_id={{ listing[1] }}" method="POST">
             <input type="hidden" name="seller_email" value="{{ email }}">
 
             <div class="form-group">

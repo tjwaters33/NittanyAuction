@@ -72,7 +72,7 @@
             </div>
         {% endif %}
 
-        <form action="/request_subcategory?token={{token}}" method="POST">
+        <form action="/request_subcategory?token={{token}}&returnto=sellitem" method="POST">
             <input type="hidden" name="seller_email" value="{{ email }}">
 
             <div class="form-group">
