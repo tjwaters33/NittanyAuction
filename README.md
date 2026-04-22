@@ -106,7 +106,10 @@ Functionalities
         Category hierarchy is viewable from the homepage
         Files: app.py, home.html, page.html, productCard.js
 
-
+    9.  User Cart
+       Allows users to store auctions for later bidding
+       Keeps track of stored items and shows existing price
+       Files: app.py, cart.html
 How To Run:
 1) run init_database.py
 2) run app.py
