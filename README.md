@@ -45,6 +45,8 @@ Files:
         -   my_bids.html: view bidder bids page layout
         -   search_listings.html: search listings page layout 
         -   account.html: view and edit account page layout
+        -   vendor_view.html: vendor info and rating layout
+        -   requests.html: helpdest and request layout
         -   cart.html:
         -   tickets.html:
     
@@ -82,7 +84,7 @@ Functionalities
     6.  Rating
         Allows bidders to give sellers a rating based on the trasaction
         Only allow the winning bidder to rate the seller after transaction goes through
-        Files: rating.html, app.py
+        Files: vendor_view.html, app.py
 
 
     7.  Product Search
