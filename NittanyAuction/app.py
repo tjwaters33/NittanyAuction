@@ -10,6 +10,8 @@ host = 'http://127.0.0.1:5000/'
 
 # maps token to (email,type)
 sessions = dict()
+# maps token to cart items [listing_id, seller_email, qty]
+carts = dict()
 
 def getUserEmail(token):
 	return sessions[token][0]
@@ -26,6 +28,8 @@ def logout():
 	token = request.args.get('token')
 	if token in sessions:
 		sessions.pop(token)
+	if token in carts:
+		carts.pop(token)
 	return redirect('/')
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -36,6 +40,7 @@ def login_endpoint():
 		if result:
 			token = uuid.uuid1().hex
 			sessions[token] = (request.form['email'], request.form['type'])
+			carts[token] = []
 			print(f"NEW SESSION {request.form['email']} {token}")
 			return redirect(url_for('home', token=token, type=request.form['type'], email=request.form['email']))
 		else:
@@ -1088,6 +1093,7 @@ def leave_rating():
 	connection.close()
 	return redirect(url_for('vendor_view',token=token,vendor=vendor,error=error))
 
+<<<<<<< Updated upstream
 @app.route("/requests")
 def requests():
 	token = request.args.get('token')
@@ -1149,6 +1155,79 @@ def requests():
 # 	""")
 # 	results = cursor.fetchall()
 # 	return render_template('cart_view.html', listings = [dict(row) for row in results], token = token, type = getUserType(token), email = getUserEmail(token))
+=======
+@app.route('/cart', methods=['GET'])
+def view_cart():
+	token = request.args.get('token')
+	if token not in sessions:
+		return redirect('/')
+	
+	cart_items = carts.get(token, [])
+	connection = init_database.get_connection()
+	connection.row_factory = sql.Row
+	
+	cart_with_details = []
+	for item in cart_items:
+		cursor = connection.execute(
+			"""SELECT listing.Seller_Email, listing.Listing_ID, listing.Category, listing.Auction_Title, listing.Product_Name, listing.Product_Description, listing.Quantity, listing.Status, 
+			COALESCE(MAX(bid.Bid_Price), 0) as price FROM Auction_Listings listing
+			LEFT JOIN Bids bid ON listing.Listing_ID = bid.Listing_ID
+			WHERE listing.Seller_Email = ? AND listing.Listing_ID = ?
+			GROUP BY listing.Listing_ID""",
+			(item['seller_email'], item['listing_id'])
+		)
+		listing = cursor.fetchone()
+		if listing:
+			cart_with_details.append({
+				'listing': dict(listing),
+				'quantity': item['quantity']
+			})
+	
+	connection.close()
+	return render_template('cart.html', token=token, cart_items=cart_with_details, type=getUserType(token))
+
+@app.route('/add_to_cart', methods=['POST'])
+def add_to_cart():
+	token = request.form.get('token')
+	listing_id = request.form.get('listing_id')
+	seller_email = request.form.get('seller_email')
+	quantity = int(request.form.get('quantity', 1))
+	
+	if token not in sessions:
+		return redirect('/')
+	
+	if token not in carts:
+		carts[token] = []
+	
+	# Check if item already in cart
+	for item in carts[token]:
+		if item['listing_id'] == listing_id and item['seller_email'] == seller_email:
+			item['quantity'] += quantity
+			return redirect(url_for('view_listing', token=token, listing_id=listing_id, seller_email=seller_email, success='Item quantity updated in cart'))
+	
+	# Add new item to cart
+	carts[token].append({
+		'listing_id': listing_id,
+		'seller_email': seller_email,
+		'quantity': quantity
+	})
+	
+	return redirect(url_for('view_listing', token=token, listing_id=listing_id, seller_email=seller_email, success='Item added to cart'))
+
+@app.route('/remove_from_cart', methods=['POST'])
+def remove_from_cart():
+	token = request.form.get('token')
+	listing_id = request.form.get('listing_id')
+	seller_email = request.form.get('seller_email')
+	
+	if token not in sessions or token not in carts:
+		return redirect('/')
+	
+	carts[token] = [item for item in carts[token] 
+		if not (item['listing_id'] == listing_id and item['seller_email'] == seller_email)]
+	
+	return redirect(url_for('view_cart', token=token))
+>>>>>>> Stashed changes
 
 if __name__ == "__main__":
 	app.run()

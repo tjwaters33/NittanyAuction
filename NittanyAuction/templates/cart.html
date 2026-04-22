@@ -1,5 +1,56 @@
 {% extends "page.html" %}
 
 {% block content %}
-    <h>Show cart here</h>
+<div class="container mt-4">
+  <h2>Shopping Cart</h2>
+  
+  {% if cart_items %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Seller</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set grand_total = 0 %}
+        {% for item in cart_items %}
+          {% set item_total = item.listing['price'] * item.quantity %}
+          {% set grand_total = grand_total + item_total %}
+          <tr>
+            <td>
+              <a href="{{url_for('view_listing')}}?token={{token}}&listing_id={{item.listing['listing_id']}}&seller_email={{item.listing['seller_email']}}">
+                {{ item.listing['auction_title'] }}
+              </a>
+            </td>
+            <td>{{ item.listing['seller_email'] }}</td>
+            <td>${{ "%.2f"|format(item.listing['price']) }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ "%.2f"|format(item_total) }}</td>
+            <td>
+              <form action="{{url_for('remove_from_cart')}}" method="POST" style="display: inline;">
+                <input type="hidden" name="token" value="{{token}}">
+                <input type="hidden" name="listing_id" value="{{item.listing['listing_id']}}">
+                <input type="hidden" name="seller_email" value="{{item.listing['seller_email']}}">
+                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+    <div class="text-right mt-3">
+      <h4>Total: ${{ "%.2f"|format(grand_total) }}</h4>
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      Your cart is empty.
+    </div>
+  {% endif %}
+</div>
 {% endblock %}

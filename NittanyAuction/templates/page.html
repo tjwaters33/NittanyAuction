@@ -3,11 +3,13 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>NittanyAuction</title>
 	{% include 'imports.html' %}
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<<<<<<< Updated upstream
         <a class="navbar-brand">NittanyAuction [{{ type }}]</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -48,9 +50,64 @@
                     <a class="nav-link" href="{{url_for('logout')}}?token={{ token }}">Log out</a>
                 </li>
             </ul>
+=======
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{url_for('home')}}?token={{ token }}">
+                <strong>NittanyAuction</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('home')}}?token={{ token }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('search_listings')}}?token={{ token }}">Search</a>
+                    </li>
+                    {% if type == "Sellers" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('sellitem')}}?token={{ token }}">Sell Item</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('my_listings')}}?token={{ token }}">My Auctions</a>
+                    </li>
+                    {% elif type == "Bidders" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('my_bids')}}?token={{ token }}">My Bids</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('view_cart')}}?token={{ token }}">
+                            Cart
+                        </a>
+                    </li>
+                    {% elif type == "Helpdesk" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tickets?token={{ token }}">Tickets</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('account')}}?token={{ token }}">Account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{url_for('logout')}}?token={{ token }}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+>>>>>>> Stashed changes
         </div>
     </nav>
-    {% block content %}
-    {% endblock %}
+
+    <main class="py-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="mt-5 pt-4 border-top">
+        <div class="container text-center text-muted">
+            <p>&copy; 2026 NittanyAuction. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>

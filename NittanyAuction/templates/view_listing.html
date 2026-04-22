@@ -46,14 +46,27 @@
     {% elif type == "Bidders" %}
     {% if listing[9] == 1 %}
     <hr>
-    <form action="{{url_for('submit_bid')}}?token={{token}}&listing_id={{listing[1]}}" method="POST">
-        <div class="input-group input-group-sm m-1 w-50">
-            <input type="number" class="form-control" id="price" name="price">
-            <div class="input-group-append">
-                <button class="btn btn-outline-primary" type="submit">Place Bid</button>
+    <div class="d-flex gap-3">
+        <form action="{{url_for('submit_bid')}}?token={{token}}&listing_id={{listing[1]}}" method="POST">
+            <div class="input-group input-group-sm">
+                <input type="number" class="form-control" id="price" name="price" placeholder="Enter bid amount">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-primary" type="submit">Place Bid</button>
+                </div>
             </div>
-        </div>
-    </form>
+        </form>
+        <form action="{{url_for('add_to_cart')}}" method="POST">
+            <input type="hidden" name="token" value="{{token}}">
+            <input type="hidden" name="listing_id" value="{{listing[1]}}">
+            <input type="hidden" name="seller_email" value="{{listing[0]}}">
+            <div class="input-group input-group-sm">
+                <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" max="{{listing[6]}}">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-success" type="submit">Add to Cart</button>
+                </div>
+            </div>
+        </form>
+    </div>
     {% endif %}
     {% endif %}
     {% if success %}
