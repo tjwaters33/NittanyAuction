@@ -64,11 +64,45 @@
                 <input type="number" name="max_bids" id="max_bids" min="1" class="form-control" value="{{ listing[8] }}" required>
             </div>
 
+            <div class="form-group">
+                <label for="status">Listing Status</label>
+                <select name="status" id="status" class="form-control" required>
+                    <option value="1" {% if listing[9] == 1 %}selected{% endif %}>Active</option>
+                    <option value="0" {% if listing[9] == 0 %}selected{% endif %}>Inactive</option>
+                    {% if listing[9] == 2 %}
+                        <option value="2" selected>Sold</option>
+                    {% endif %}
+                </select>
+            </div>
+
             <button type="submit" class="btn btn-primary w-100">Update Listing</button>
         </form>
         {% else %}
             <div class="alert alert-danger">Listing not found.</div>
         {% endif %}
+        <hr>
+        <h4 class="mt-4">Request a New Subcategory</h4>
+
+        <form action="/request_subcategory?token={{token}}" method="POST">
+            <input type="hidden" name="seller_email" value="{{ email }}">
+
+            <div class="form-group">
+                <label for="parent_category">Parent Category</label>
+                <select name="parent_category" id="parent_category" class="form-control" required>
+                    <option value="">Select Parent Category</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="requested_category">Requested Subcategory Name</label>
+                <input type="text" name="requested_category" id="requested_category" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-secondary w-100">Request New Subcategory</button>
+        </form>
     </div>
 </div>
 {% endblock %}

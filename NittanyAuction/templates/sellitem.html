@@ -61,6 +61,39 @@
 
             <button type="submit" class="btn btn-primary w-100">Create Listing</button>
         </form>
+
+        <hr>
+
+        <h4 class="mt-4">Request a New Subcategory</h4>
+
+        {% if request_success %}
+            <div class="alert alert-success">
+                Subcategory request submitted successfully.
+            </div>
+        {% endif %}
+
+        <form action="/request_subcategory?token={{token}}" method="POST">
+            <input type="hidden" name="seller_email" value="{{ email }}">
+
+            <div class="form-group">
+                <label for="parent_category">Parent Category</label>
+                <select name="parent_category" class="form-control" required>
+                    <option value="">Select Parent Category</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="requested_category">Requested Subcategory Name</label>
+                <input type="text" name="requested_category" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-secondary w-100">
+                Request New Subcategory
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}

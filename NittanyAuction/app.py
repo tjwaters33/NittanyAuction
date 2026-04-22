@@ -466,17 +466,16 @@ def edit_listing():
 		quantity = request.form.get('quantity', None)
 		reserve_price = request.form.get('reserve_price', None)
 		max_bids = request.form.get('max_bids', None)
+		status = request.form.get('status', None)
 
-		if seller_email != getUserEmail(token):
-			error = "Unauthorized Access"	
-		elif None in [seller_email, listing_id, category, auction_title, product_name, product_description, quantity, reserve_price, max_bids]:
+		if None in [seller_email, listing_id, category, auction_title, product_name, product_description, quantity, reserve_price, max_bids, status]:
 			error = "Missing required fields"
 		else:
 			connection.execute(
 				'''
 				UPDATE Auction_Listings
 				SET category = ?, auction_title = ?, product_name = ?, product_description = ?,
-					quantity = ?, reserve_price = ?, max_bids = ?
+					quantity = ?, reserve_price = ?, max_bids = ?, status = ?
 				WHERE seller_email = ? AND listing_id = ?
 				''',
 				(
@@ -487,6 +486,7 @@ def edit_listing():
 					int(quantity),
 					float(reserve_price),
 					int(max_bids),
+					int(status),  
 					seller_email,
 					int(listing_id)
 				)
@@ -588,6 +588,46 @@ def account():
 		account_info = cursor.fetchone()
 
 	return render_template('account.html', token = token, type = type, email = email, account_info = account_info, is_vendor = is_vendor, vendor_info = vendor_info)
+
+@app.route('/request_subcategory', methods=['POST'])
+def request_subcategory():
+	parent_category = request.form.get('parent_category', None)
+	requested_category = request.form.get('requested_category', None)
+
+	token = request.args.get('token')
+	if not token in sessions:
+		return redirect('/')
+	
+	email = getUserEmail(token)
+	
+	if None not in [email, parent_category, requested_category]:
+		connection = init_database.get_connection()
+
+		cursor = connection.execute('SELECT COALESCE(MAX(request_id), 0) + 1 FROM Requests')
+		next_request_id = cursor.fetchone()[0]
+
+		request_desc = f"Seller {email} requested new subcategory '{requested_category}' under '{parent_category}'."
+
+		connection.execute(
+			'''
+			INSERT INTO Requests
+			(request_id, sender_email, helpdesk_staff_email, request_type, request_desc, request_status)
+			VALUES (?, ?, ?, ?, ?, ?)
+			''',
+			(
+				next_request_id,
+				email,
+				'helpdeskteam@lsu.edu',
+				'AddCategory',
+				request_desc,
+				0
+			)
+		)
+
+		connection.commit()
+		connection.close()
+
+	return redirect(url_for('sellitem', token = token, request_success=1))
 
 if __name__ == "__main__":
 	app.run()
